@@ -1,0 +1,132 @@
+---
+- hosts: all
+  gather_facts: yes
+
+  tasks:
+    - name: Initialize Host and Networking
+      become_user: root
+      shell: |
+        echo TMP_HST=$(hostname -s)
+        sed -i.bak -e 's/^ - set_hostname/# - set_hostname/' -e 's/^ - update_hostname/# - update_hostname/' /etc/cloud/cloud.cfg
+        hostnamectl set-hostname --static ${TMP_HST}.{{domain}}
+        echo "HOSTNAME=${TMP_HST}.{{domain}}" | sudo tee -a /etc/sysconfig/network > /dev/null
+        hostname -F /etc/hostname
+        echo 'vm.max_map_count = 262144' | sudo tee --append /etc/sysctl.conf > /dev/null
+
+        # turn off rx and set mtu to private_network_mtu for all interfaces to improve network performance
+        envs=($(ip route list scope link | awk '{print $3'}))
+        for env in "${envs[@]}"
+        do
+          con_name=$(nmcli -t -f NAME connection show | grep $env)
+          nmcli connection modify "$con_name" ethtool.feature-rx off
+          nmcli connection modify "$con_name" ethernet.mtu {{private_network_mtu}}
+          nmcli connection modify "$con_name" ipv4.gateway {{bastion_ip}}
+          nmcli connection up "$con_name"
+        done
+
+    - name: Print the gateway for each host when defined
+      ansible.builtin.debug:
+        msg: System {{ inventory_hostname }} has gateway {{ ansible_default_ipv4.gateway }}
+      when: ansible_default_ipv4.gateway is defined
+
+    - name: Debug Statement for Proxy
+      ansible.builtin.debug:
+        msg: Proxy is set to '{{ proxy_server }}'
+
+    - name: Setup Proxy Info
+      become_user: root
+      shell: |
+        if [ ! -z "{{proxy_server}}" ]
+        then
+          echo "Setting up proxy details..."
+          # System
+          set http_proxy="http://{{proxy_user_pass}}{{proxy_server}}:"
+          set https_proxy="http://{{proxy_user_pass}}{{proxy_server}}:{{proxy_port}}"
+          set no_proxy="{{no_proxy}}"
+          echo "export http_proxy=\"http://{{proxy_user_pass}}{{proxy_server}}:{{proxy_port}}\"" | sudo tee /etc/profile.d/http_proxy.sh > /dev/null
+          echo "export https_proxy=\"http://{{proxy_user_pass}}{{proxy_server}}:{{proxy_port}}\"" | sudo tee -a /etc/profile.d/http_proxy.sh > /dev/null
+          echo "export no_proxy=\"{{no_proxy}}\"" | sudo tee -a /etc/profile.d/http_proxy.sh > /dev/null
+
+          # RHSM
+          sed -i -e 's/^proxy_hostname =.*/proxy_hostname = {{proxy_server}}/' /etc/rhsm/rhsm.conf
+          sed -i -e 's/^proxy_port =.*/proxy_port = {{proxy_port}}/' /etc/rhsm/rhsm.conf
+          sed -i -e 's/^proxy_user =.*/proxy_user = {{proxy_user}}/' /etc/rhsm/rhsm.conf
+          sed -i -e 's/^proxy_password =.*/proxy_password = {{proxy_user_pass}}/' /etc/rhsm/rhsm.conf
+  
+          # YUM/DNF
+          # Incase /etc/yum.conf is a symlink to /etc/dnf/dnf.conf we try to update the original file
+          yum_dnf_conf=$(readlink -f -q /etc/yum.conf)
+          sed -i -e '/^proxy.*/d' $yum_dnf_conf
+          echo "proxy=http://{{proxy_server}}:{{proxy_port}}" | sudo tee -a $yum_dnf_conf > /dev/null
+          echo "proxy_username={{proxy_user}}" | sudo tee -a $yum_dnf_conf > /dev/null
+          echo "proxy_password={{proxy_user_pass}}" | sudo tee -a $yum_dnf_conf > /dev/null
+        fi 
+
+    - name: Register with Red Hat Network
+      become_user: root
+      shell: |
+        os=$(cat /etc/os-release | egrep "^ID=" | awk -F'"' '{print $2}')
+        if [[ "$os" == "rhel" ]]
+        then
+          # Give some more time to subscription-manager
+          subscription-manager config --server.server_timeout=600
+          subscription-manager clean
+          if [[ "{{username}}" != '' && "{{username}}" != '<subscription-id>' ]]; then
+            subscription-manager register --username="{{username}}" --password="{{password}}" --force
+          else
+            subscription-manager register --org="{{username}}" --activationkey="{{rhel_subscription_activationkey}}" --force
+          fi
+          subscription-manager refresh
+          subscription-manager attach --auto
+        fi
+
+    - name: Add EPEL Repository
+      become_user: root
+      shell: |
+        # Additional repo for installing ansible package
+        if ( [[ -z "{{username}}" ]] || [[ "{{username}}" == "<subscription-id>" ]] ) && [[ -z "{{rhel_subscription_org}}" ]]
+        then
+          yum install -y epel-release
+        else
+          # Setup RHEL9 subscription
+          os_ver=$(cat /etc/os-release | egrep "^VERSION_ID=" | awk -F'"' '{print $2}')
+          if [[ $os_ver != "9"* ]]; then
+            subscription-manager repos --enable "{{ansible_repo_name}}"
+          else
+            yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+          fi
+        fi
+
+    - name: Install Supporting Packages
+      become_user: root
+      shell: |
+        yum update -y --skip-broken
+        yum install -y wget jq git net-tools vim python3 tar
+
+    - name: Enable Reliable Scalable Cluster Technology (RSCT)
+      become_user: root
+      shell: |
+        yum install -y rsct.basic.ppc64le rsct.core.ppc64le rsct.core.utils.ppc64le rsct.opt.storagerm.ppc64le
+
+    - name: Setup NetworkManager
+      become_user: root
+      shell: |
+        sysctl -w net.ipv4.ip_forward=1
+        systemctl unmask NetworkManager
+        systemctl start NetworkManager
+        for i in $(nmcli device | grep unmanaged | awk '{print $1}'); do echo NM_CONTROLLED=yes | sudo tee -a /etc/sysconfig/network-scripts/ifcfg-$i; done
+        systemctl restart NetworkManager
+        systemctl enable NetworkManager
+
+    - name: Setup Firewall
+      become_user: root
+      shell: |
+        # 22/tcp 7500/tcp
+        yum install firewalld -y
+        systemctl unmask firewalld
+        systemctl start firewalld
+        systemctl enable firewalld
+        firewall-cmd --check-config
+        firewall-cmd --add-port=22/tcp
+        firewall-cmd --add-port=7500/tcp
+        firewall-cmd --state

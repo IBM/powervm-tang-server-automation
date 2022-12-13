@@ -1,0 +1,12 @@
+---
+- hosts: all
+  gather_facts: no
+
+  tasks:
+    - name: Remove RHN subscription
+      shell: |
+        os_ver=$(cat /etc/os-release | egrep "^ID=" | awk -F'"' '{print $2}')
+        if [[ $os_ver != "rhel" ]]; then
+          sudo subscription-manager unregister || true
+          sudo subscription-manager remove --all || true
+        fi

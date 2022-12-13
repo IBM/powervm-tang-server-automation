@@ -1,0 +1,13 @@
+---
+- hosts: all
+  gather_facts: yes
+
+  tasks:
+    - name: Enable FIPS Mode
+      become_user: root
+      shell: |
+        fips-mode-setup --enable
+    - name: Reboot the host
+      become_user: root
+      ansible.builtin.reboot:
+        reboot_timeout: 30
