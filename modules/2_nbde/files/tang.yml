@@ -1,0 +1,49 @@
+---
+- hosts: all
+  gather_facts: no
+  vars:
+    nbde_server_fetch_keys: yes
+    nbde_server_keys_dir: /root/nbde_server/keys
+    # Port is changed from 80
+    nbde_server_port: 7500
+    nbde_server_manage_selinux: yes
+    # the manage firewall is marked as yes
+    nbde_server_manage_firewall: yes
+    # Per https://www.redhat.com/en/blog/advanced-automation-and-management-network-bound-disk-encryption-rhel-system-roles
+    # -e nbde_server_rotate_keys=yes
+    # will cause it rotate keys and return the values
+    nbde_server_rotate_keys: no
+
+  tasks:
+    - name: Jitter retry
+      retries: 5
+      delay: 15
+      shell: |
+          echo $(hostname --long)
+    - name: Configure NBDE Server
+      include_role:
+        name: fedora.linux_system_roles.nbde_server
+    - name: Print nbde server thumbprint
+      shell: |
+        tang-show-keys {{vars.nbde_server_port}} >> tmp.txt
+        export ip=$(hostname -I)
+        echo " is key of this ip: `echo $ip | awk '{print $1}'` " >> tmp.txt
+    - name: Fetch source list from clients
+      fetch:
+        src: /root/tmp.txt
+        flat: yes
+        dest: "/root/tang-keys/{{ inventory_hostname }}.txt"
+    - name: Merge files
+      run_once: yes
+      delegate_to: localhost
+      shell: |
+        cat /root/tang-keys/{{ item }}.txt >> /root/tang-keys/allnodes.txt
+      with_items: "{{ groups['all'] }}"
+    - name: Remove unused files
+      run_once: yes
+      delegate_to: localhost
+      shell: |
+        shopt -s extglob
+        cd /root/tang-keys
+        rm -v !("allnodes.txt") -f
+
