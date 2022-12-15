@@ -15,6 +15,11 @@
     nbde_server_rotate_keys: no
 
   tasks:
+    - name: Jitter retry
+      retries: 5
+      delay: 15
+      shell: |
+          echo $(hostname --long)
     - name: Configure NBDE Server
       include_role:
         name: fedora.linux_system_roles.nbde_server
