@@ -16,8 +16,8 @@
 
   tasks:
     - name: Jitter retry
-      retries: 5
-      delay: 15
+      retries: 10
+      delay: 60
       shell: |
           echo $(hostname --long)
     - name: Configure NBDE Server

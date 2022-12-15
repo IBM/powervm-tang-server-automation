@@ -26,6 +26,7 @@ data "openstack_networking_network_v2" "network" {
   name = var.network_name
 }
 
+# docs - https://registry.terraform.io/providers/terraform-provider-openstack/openstack/latest/docs/resources/compute_instance_v2
 resource "openstack_compute_instance_v2" "bastion" {
   count = var.bastion.count
   name  = "${var.name_prefix}-bastion-${count.index}"
