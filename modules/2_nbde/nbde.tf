@@ -39,6 +39,7 @@ data "openstack_networking_network_v2" "network" {
   name = var.network_name
 }
 
+# docs - https://registry.terraform.io/providers/terraform-provider-openstack/openstack/latest/docs/resources/compute_instance_v2
 resource "openstack_compute_instance_v2" "tang" {
   count = var.tang.count
   name  = "${var.name_prefix}-server-${count.index}"
@@ -54,7 +55,6 @@ resource "openstack_compute_instance_v2" "tang" {
 }
 
 # Extract the instance's IP addresses
-# see https://registry.terraform.io/providers/IBM-Cloud/ibm/latest/docs/resources/pi_instance
 locals {
   tang_hosts = join(",", [for ts in openstack_compute_instance_v2.tang : ts.network[0].fixed_ip_v4])
 }
