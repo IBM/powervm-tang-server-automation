@@ -50,21 +50,21 @@ variable "private_key_file" {
 variable "private_key" {
   description = "content of private ssh key"
   # if empty string will read contents of file at var.private_key_file
-  default   = ""
+  default = ""
 }
 
 variable "public_key" {
   description = "Public key"
   # if empty string will read contents of file at var.public_key_file
-  default   = ""
+  default = ""
 }
 
 variable "rhel_subscription_username" {
-  default   = ""
+  default = ""
 }
 
 variable "rhel_subscription_password" {
-  default   = ""
+  default = ""
 }
 
 variable "rhel_smt" {
@@ -147,8 +147,8 @@ variable "private_network_mtu" {
 }
 
 variable "rhel_subscription_org" {
-  type      = string
-  default   = ""
+  type    = string
+  default = ""
 }
 
 variable "setup_squid_proxy" {
@@ -158,8 +158,8 @@ variable "setup_squid_proxy" {
 }
 
 variable "rhel_subscription_activationkey" {
-  type      = string
-  default   = ""
+  type    = string
+  default = ""
 }
 
 variable "ansible_repo_name" {
