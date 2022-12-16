@@ -121,11 +121,6 @@ ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory setup.yml --extra-
   --extra-vars no_proxy="${local.proxy.no_proxy}" \
   --extra-vars private_network_mtu="${var.private_network_mtu}"  \
   --extra-vars domain="${var.domain}"
-
-ansible-galaxy install linux-system-roles.nbde_server,v1.3.0
-# Lock in the system_roles
-ansible-galaxy collection install fedora.linux_system_roles:==1.29.0
-ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory tang.yml
 EOF
     ]
   }
@@ -170,9 +165,10 @@ resource "null_resource" "tang_install" {
     when = create
     inline = [
       <<EOF
-ansible-galaxy install linux-system-roles.nbde_server,v1.3.0
-# Lock in the system_roles
-ansible-galaxy collection install fedora.linux_system_roles:==1.29.0
+# https://galaxy.ansible.com/linux-system-roles/nbde_server
+ansible-galaxy install linux-system-roles.nbde_server,1.3.0
+# Lock in the system_roles - https://galaxy.ansible.com/fedora/linux_system_roles
+ansible-galaxy collection install fedora.linux_system_roles:==1.33.0
 ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory tang.yml
 EOF
     ]
