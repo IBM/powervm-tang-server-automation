@@ -1,8 +1,12 @@
 ---
 - hosts: all
-  gather_facts: yes
+  gather_facts: no
 
   tasks:
+    - name: Wait up to 300 seconds
+      ansible.builtin.wait_for_connection:
+        delay: 60
+        timeout: 300
     - name: Initialize Host and Networking
       become_user: root
       shell: |
@@ -35,32 +39,30 @@
 
     - name: Setup Proxy Info
       become_user: root
+      when: proxy_server is defined and proxy_server|length != 0
       shell: |
-        if [ ! -z "{{proxy_server}}" ]
-        then
-          echo "Setting up proxy details..."
-          # System
-          set http_proxy="http://{{proxy_user_pass}}{{proxy_server}}:"
-          set https_proxy="http://{{proxy_user_pass}}{{proxy_server}}:{{proxy_port}}"
-          set no_proxy="{{no_proxy}}"
-          echo "export http_proxy=\"http://{{proxy_user_pass}}{{proxy_server}}:{{proxy_port}}\"" | sudo tee /etc/profile.d/http_proxy.sh > /dev/null
-          echo "export https_proxy=\"http://{{proxy_user_pass}}{{proxy_server}}:{{proxy_port}}\"" | sudo tee -a /etc/profile.d/http_proxy.sh > /dev/null
-          echo "export no_proxy=\"{{no_proxy}}\"" | sudo tee -a /etc/profile.d/http_proxy.sh > /dev/null
+        echo "Setting up proxy details..."
+        
+        set http_proxy="http://{{proxy_user_pass}}{{proxy_server}}:"
+        set https_proxy="http://{{proxy_user_pass}}{{proxy_server}}:{{proxy_port}}"
+        set no_proxy="{{no_proxy}}"
+        echo "export http_proxy=\"http://{{proxy_user_pass}}{{proxy_server}}:{{proxy_port}}\"" | sudo tee /etc/profile.d/http_proxy.sh > /dev/null
+        echo "export https_proxy=\"http://{{proxy_user_pass}}{{proxy_server}}:{{proxy_port}}\"" | sudo tee -a /etc/profile.d/http_proxy.sh > /dev/null
+        echo "export no_proxy=\"{{no_proxy}}\"" | sudo tee -a /etc/profile.d/http_proxy.sh > /dev/null
 
-          # RHSM
-          sed -i -e 's/^proxy_hostname =.*/proxy_hostname = {{proxy_server}}/' /etc/rhsm/rhsm.conf
-          sed -i -e 's/^proxy_port =.*/proxy_port = {{proxy_port}}/' /etc/rhsm/rhsm.conf
-          sed -i -e 's/^proxy_user =.*/proxy_user = {{proxy_user}}/' /etc/rhsm/rhsm.conf
-          sed -i -e 's/^proxy_password =.*/proxy_password = {{proxy_user_pass}}/' /etc/rhsm/rhsm.conf
+        # RHSM
+        sed -i -e 's/^proxy_hostname =.*/proxy_hostname = {{proxy_server}}/' /etc/rhsm/rhsm.conf
+        sed -i -e 's/^proxy_port =.*/proxy_port = {{proxy_port}}/' /etc/rhsm/rhsm.conf
+        sed -i -e 's/^proxy_user =.*/proxy_user = {{proxy_user}}/' /etc/rhsm/rhsm.conf
+        sed -i -e 's/^proxy_password =.*/proxy_password = {{proxy_user_pass}}/' /etc/rhsm/rhsm.conf
   
-          # YUM/DNF
-          # Incase /etc/yum.conf is a symlink to /etc/dnf/dnf.conf we try to update the original file
-          yum_dnf_conf=$(readlink -f -q /etc/yum.conf)
-          sed -i -e '/^proxy.*/d' $yum_dnf_conf
-          echo "proxy=http://{{proxy_server}}:{{proxy_port}}" | sudo tee -a $yum_dnf_conf > /dev/null
-          echo "proxy_username={{proxy_user}}" | sudo tee -a $yum_dnf_conf > /dev/null
-          echo "proxy_password={{proxy_user_pass}}" | sudo tee -a $yum_dnf_conf > /dev/null
-        fi 
+        # YUM/DNF
+        # Incase /etc/yum.conf is a symlink to /etc/dnf/dnf.conf we try to update the original file
+        yum_dnf_conf=$(readlink -f -q /etc/yum.conf)
+        sed -i -e '/^proxy.*/d' $yum_dnf_conf
+        echo "proxy=http://{{proxy_server}}:{{proxy_port}}" | sudo tee -a $yum_dnf_conf > /dev/null
+        echo "proxy_username={{proxy_user}}" | sudo tee -a $yum_dnf_conf > /dev/null
+        echo "proxy_password={{proxy_user_pass}}" | sudo tee -a $yum_dnf_conf > /dev/null 
 
     - name: Register with Red Hat Network
       become_user: root
@@ -99,14 +101,27 @@
 
     - name: Install Supporting Packages
       become_user: root
-      shell: |
-        yum update -y --skip-broken
-        yum install -y wget jq git net-tools vim python3 tar
+      ansible.builtin.yum:
+        name:
+          - wget
+          - jq
+          - git
+          - net-tools
+          - vim
+          - python3
+          - tar
+        update_cache: true
+        state: present
 
     - name: Enable Reliable Scalable Cluster Technology (RSCT)
       become_user: root
-      shell: |
-        yum install -y rsct.basic.ppc64le rsct.core.ppc64le rsct.core.utils.ppc64le rsct.opt.storagerm.ppc64le
+      ansible.builtin.yum:
+        name:
+          - rsct.basic.ppc64le
+          - rsct.core.ppc64le
+          - rsct.core.utils.ppc64le
+          - rsct.opt.storagerm.ppc64le
+        state: present
 
     - name: Setup NetworkManager
       become_user: root
