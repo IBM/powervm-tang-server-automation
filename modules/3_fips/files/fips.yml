@@ -10,4 +10,4 @@
     - name: Reboot the host
       become_user: root
       ansible.builtin.reboot:
-        reboot_timeout: 30
+        reboot_timeout: 3000
