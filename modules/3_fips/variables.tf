@@ -51,7 +51,6 @@ variable "rhel_username" {
 variable "private_key" {
   description = "content of private ssh key"
   default     = ""
-  sensitive   = true
 }
 
 variable "connection_timeout" {

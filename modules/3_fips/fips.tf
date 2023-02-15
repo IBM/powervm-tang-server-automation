@@ -74,6 +74,10 @@ resource "null_resource" "bastion_fips_enable_and_reboot" {
   # already exists
   count = var.bastion_count
 
+  depends_on = [
+    null_resource.tang_fips_enable,
+  ]
+
   connection {
     type        = "ssh"
     user        = var.rhel_username
@@ -87,7 +91,7 @@ resource "null_resource" "bastion_fips_enable_and_reboot" {
       <<EOF
 # enable FIPS as required
 sudo fips-mode-setup --enable
-shutdown -r now
+sudo shutdown -r +1
 EOF
     ]
   }

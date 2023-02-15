@@ -24,31 +24,26 @@
 variable "user_name" {
   description = "The user name used to connect to OpenStack/PowerVC"
   default     = "****"
-  #sensitive   = true
 }
 
 variable "password" {
   description = "The password for the user"
   default     = "****"
-  #sensitive   = true
 }
 
 variable "tenant_name" {
   description = "The name of the project (a.k.a. tenant) used"
   default     = "ibm-default"
-  #sensitive   = true
 }
 
 variable "domain_name" {
   description = "The domain to be used"
   default     = "Default"
-  #sensitive   = true
 }
 
 variable "auth_url" {
   description = "The endpoint URL used to connect to OpenStack/PowerVC"
   default     = "https://<HOSTNAME>:5000/v3/"
-  #sensitive   = true
 }
 
 variable "insecure" {
