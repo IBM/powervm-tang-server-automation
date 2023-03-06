@@ -182,12 +182,16 @@ variable "tang" {
     # optional fixed IPs
     # fixed_ips = []
     # optional data volumes to master nodes
-    # data_volume_size = 100 #Default volume size (in GB) to be attached to the master nodes.
-    # data_volume_count = 0 #Number of volumes to be attached to each master node.
+    data_volume_size  = 10 #Default volume size (in GB) to be attached to the Tang servers.
+    data_volume_count = 1  #Number of volumes to be attached to each Tang server.
   }
   validation {
     condition     = lookup(var.tang, "count", 3) == 3
     error_message = "The tang.count value must be 3."
+  }
+  validation {
+    condition     = lookup(var.tang, "data_volume_count", 1) == 1
+    error_message = "The tang.data_volume_count must be 1."
   }
 }
 

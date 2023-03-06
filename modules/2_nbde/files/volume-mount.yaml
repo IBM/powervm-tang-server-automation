@@ -1,0 +1,26 @@
+- name: playbook for mounting data volume
+  hosts: all
+  become: true
+  tasks:
+    - name: Create directory /var/db/tang if does not exist
+      file:
+        path: /var/db/tang
+        state: directory
+        mode: '0755'
+        recurse: yes
+    - name: create partition
+      parted:
+        device: /dev/mapper/mpathb
+        number: 1
+        flags: [ lvm ]
+        state: present
+        part_end: "{{ volume_size }}GB"
+    - name: format the partition
+      shell: |
+        sudo mkfs.ext4 /dev/mapper/mpathb1
+    - name: mount the lv on /var/db/tang
+      mount:
+        path: /var/db/tang
+        src: /dev/mapper/mpathb1
+        fstype: ext4
+        state: mounted

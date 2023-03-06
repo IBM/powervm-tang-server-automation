@@ -16,9 +16,11 @@ bastion = {
   count         = 1
 }
 tang = {
-  image_id      = "27ebd00f-cbec-4e27-993d-56e4bd441584"
-  instance_type = "base-ocp-squad-tiny"
-  count         = 3
+  image_id          = "27ebd00f-cbec-4e27-993d-56e4bd441584"
+  instance_type     = "base-ocp-squad-tiny"
+  count             = 3
+  data_volume_count = 1
+  data_volume_size  = 10
 }
 domain = "sslip.io"
 
