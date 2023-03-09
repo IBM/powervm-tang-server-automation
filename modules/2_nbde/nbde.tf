@@ -57,6 +57,23 @@ resource "openstack_compute_instance_v2" "tang" {
 # Extract the instance's IP addresses
 locals {
   tang_hosts = join(",", [for ts in openstack_compute_instance_v2.tang : ts.network[0].fixed_ip_v4])
+  tang = {
+    volume_count = lookup(var.tang, "data_volume_count", 1),
+    volume_size  = lookup(var.tang, "data_volume_size", 10)
+  }
+}
+
+resource "openstack_blockstorage_volume_v2" "tang" {
+  depends_on = [openstack_compute_instance_v2.tang]
+  count      = local.tang.volume_count * var.tang["count"]
+  name       = "${var.cluster_id}-tang-${count.index}-volume"
+  size       = local.tang.volume_size
+}
+
+resource "openstack_compute_volume_attach_v2" "tang" {
+  count       = local.tang.volume_count * var.tang["count"]
+  instance_id = openstack_compute_instance_v2.tang.*.id[floor(count.index / local.tang.volume_count)]
+  volume_id   = openstack_blockstorage_volume_v2.tang.*.id[count.index]
 }
 
 resource "null_resource" "tang_setup" {
@@ -95,6 +112,11 @@ resource "null_resource" "tang_setup" {
   }
 
   provisioner "file" {
+    source      = "${path.cwd}/modules/2_nbde/files/volume-mount.yml"
+    destination = "volume-mount.yml"
+  }
+
+  provisioner "file" {
     source      = "${path.cwd}/modules/2_nbde/files/remove-subscription.yml"
     destination = "remove-subscription.yml"
   }
@@ -121,6 +143,16 @@ ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory setup.yml --extra-
   --extra-vars no_proxy="${local.proxy.no_proxy}" \
   --extra-vars private_network_mtu="${var.private_network_mtu}"  \
   --extra-vars domain="${var.domain}"
+EOF
+    ]
+  }
+
+  provisioner "remote-exec" {
+    when = create
+    inline = [
+      <<EOF
+ansible-galaxy collection install community.general:6.4.0 ansible.posix:1.5.1
+ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -vvvv -i inventory volume-mount.yml --extra-vars volume_size="${local.tang.volume_size}"
 EOF
     ]
   }
