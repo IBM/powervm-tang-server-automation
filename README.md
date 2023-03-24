@@ -16,7 +16,7 @@ The NBDE Server, also called the tang server, is deployed in a 3-node cluster wi
 
 ## Download the Automation Code
 
-You'll need to use git to clone the deployment code when working off the master branch
+You'll need to use git to clone the deployment code when working off the main branch
 
 ```
 $ git clone https://github.com/ibm/powervm-tang-server-automation
