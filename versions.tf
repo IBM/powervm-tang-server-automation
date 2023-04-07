@@ -22,7 +22,7 @@ terraform {
   required_providers {
     openstack = {
       source  = "terraform-provider-openstack/openstack"
-      version = "~> 1.48"
+      version = "~> 1.51"
     }
     random = {
       source  = "hashicorp/random"
@@ -33,5 +33,5 @@ terraform {
       version = "3.2.1"
     }
   }
-  required_version = ">= 1.2.0"
+  required_version = ">= 1.4.0"
 }
