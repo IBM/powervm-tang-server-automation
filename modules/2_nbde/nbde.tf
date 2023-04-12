@@ -63,7 +63,7 @@ locals {
   }
 }
 
-resource "openstack_blockstorage_volume_v2" "tang" {
+resource "openstack_blockstorage_volume_v3" "tang" {
   depends_on = [openstack_compute_instance_v2.tang]
   count      = local.tang.volume_count * var.tang["count"]
   name       = "${var.cluster_id}-tang-${count.index}-volume"
@@ -73,14 +73,14 @@ resource "openstack_blockstorage_volume_v2" "tang" {
 resource "openstack_compute_volume_attach_v2" "tang" {
   count       = local.tang.volume_count * var.tang["count"]
   instance_id = openstack_compute_instance_v2.tang.*.id[floor(count.index / local.tang.volume_count)]
-  volume_id   = openstack_blockstorage_volume_v2.tang.*.id[count.index]
+  volume_id   = openstack_blockstorage_volume_v3.tang.*.id[count.index]
 }
 
 resource "null_resource" "tang_setup" {
   count = 1
 
   depends_on = [
-    openstack_compute_instance_v2.tang
+    openstack_compute_volume_attach_v2.tang
   ]
 
   triggers = {
@@ -151,8 +151,8 @@ EOF
     when = create
     inline = [
       <<EOF
-ansible-galaxy collection install community.general:6.4.0 ansible.posix:1.5.1
-ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -vvvv -i inventory volume-mount.yml --extra-vars volume_size="${local.tang.volume_size}"
+ansible-galaxy collection install community.general:6.5.0 ansible.posix:1.5.1
+ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -vvvv -i inventory volume-mount.yml
 EOF
     ]
   }
@@ -198,9 +198,9 @@ resource "null_resource" "tang_install" {
     inline = [
       <<EOF
 # https://galaxy.ansible.com/linux-system-roles/nbde_server
-ansible-galaxy install linux-system-roles.nbde_server,1.3.0
+ansible-galaxy install linux-system-roles.nbde_server,1.3.4
 # Lock in the system_roles - https://galaxy.ansible.com/fedora/linux_system_roles
-ansible-galaxy collection install fedora.linux_system_roles:==1.33.0
+ansible-galaxy collection install fedora.linux_system_roles:==1.36.0
 ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory tang.yml
 EOF
     ]

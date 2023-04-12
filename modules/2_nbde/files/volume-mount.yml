@@ -1,0 +1,38 @@
+- name: playbook for mounting data volume
+  hosts: all
+  become: true
+  tasks:
+    - name: Create directory /var/db/tang if does not exist
+      file:
+        path: /var/db/tang
+        state: directory
+        mode: '0755'
+        recurse: yes
+    - name: create and format partition
+      shell: |
+        storage_device=""
+        sudo rescan-scsi-bus.sh -a -m -r
+
+        if [[ -z $(ls -l /dev/mapper/mpath*) ]];then
+            disk_path=/dev/sd*
+            echo "Disk path is /dev/sd*"
+        else
+            disk_path=/dev/mapper/mpath*
+            echo "Disk path is /dev/mapper/mpath*"
+        fi
+
+        for device in $(ls -1 $disk_path|egrep -v "[0-9]$")
+        do
+            if [[ ! -b $device"1" ]]
+            then
+                echo "${device}"
+                storage_device=$device
+            fi
+        done
+        echo 'type=83' | sfdisk ${storage_device}
+        partprobe
+    - name: mount the partition
+      shell: |
+        mkfs.ext4 /dev/mapper/mpathb1
+        mount -t ext4 /dev/mapper/mpathb1 /var/db/tang
+      
