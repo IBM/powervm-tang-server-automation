@@ -31,8 +31,13 @@
         done
         echo 'type=83' | sfdisk ${storage_device}
         partprobe
+        mkfs.xfs "${device}1"
+        echo "${device}1"
+      register: result
     - name: mount the partition
-      shell: |
-        mkfs.ext4 /dev/mapper/mpathb1
-        mount -t ext4 /dev/mapper/mpathb1 /var/db/tang
+      ansible.posix.mount:
+        path: /var/db/tang
+        src: "{{ result.stdout }}"
+        fstype: xfs
+        state: mounted
       
