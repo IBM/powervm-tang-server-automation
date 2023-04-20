@@ -8,7 +8,7 @@
 #
 # Licensed Materials - Property of IBM
 #
-# ©Copyright IBM Corp. 2022
+# © Copyright IBM Corp. 2022, 2023
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -129,9 +129,18 @@ resource "null_resource" "tang_setup" {
 echo "Hosts: ${local.tang_hosts}"
 echo "[vmhost],${local.tang_hosts}" | tr "," "\n\t" > inventory
 
+cat << EOT > ansible.cfg
+[defaults]
+retry_files_enabled = False
+pipelining          = True
+host_key_checking   = False
+log_path            = /root/tang-setup-logs.txt
+EOT
+
 echo 'Running tang setup playbook...'
-ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory setup.yml --extra-vars username="${var.rhel_subscription_username}"\
-  --extra-vars password="${var.rhel_subscription_password}"\
+ANSIBLE_CONFIG=ansible.cfg ansible-playbook -i inventory setup.yml \
+  --extra-vars username="${var.rhel_subscription_username}" \
+  --extra-vars password="${var.rhel_subscription_password}" \
   --extra-vars bastion_ip="$(ip -4 -json addr show dev env32  | jq -r '.[].addr_info[].local')" \
   --extra-vars rhel_subscription_org="${var.rhel_subscription_org}" \
   --extra-vars ansible_repo_name="${var.ansible_repo_name}" \
@@ -151,8 +160,16 @@ EOF
     when = create
     inline = [
       <<EOF
+cat << EOT > ansible.cfg
+[defaults]
+retry_files_enabled = False
+pipelining          = True
+host_key_checking   = False
+log_path            = /root/tang-volume-mount-logs.txt
+EOT
+
 ansible-galaxy collection install community.general:6.5.0 ansible.posix:1.5.1
-ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -vvvv -i inventory volume-mount.yml
+ANSIBLE_CONFIG=ansible.cfg ansible-playbook -i inventory volume-mount.yml
 EOF
     ]
   }
@@ -163,7 +180,15 @@ EOF
     on_failure = continue
     inline = [
       <<EOF
-ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory remove-subscription.yml
+cat << EOT > ansible.cfg
+[defaults]
+retry_files_enabled = False
+pipelining          = True
+host_key_checking   = False
+log_path            = /root/tang-remove-subscription-logs.txt
+EOT
+
+ANSIBLE_CONFIG=ansible.cfg ansible-playbook -i inventory remove-subscription.yml
 EOF
     ]
   }
@@ -197,11 +222,19 @@ resource "null_resource" "tang_install" {
     when = create
     inline = [
       <<EOF
+cat << EOT > ansible.cfg
+[defaults]
+retry_files_enabled = False
+pipelining          = True
+host_key_checking   = False
+log_path            = /root/tang-server-logs.txt
+EOT
+
 # https://galaxy.ansible.com/linux-system-roles/nbde_server
 ansible-galaxy install linux-system-roles.nbde_server,1.3.4
 # Lock in the system_roles - https://galaxy.ansible.com/fedora/linux_system_roles
 ansible-galaxy collection install fedora.linux_system_roles:==1.36.0
-ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory tang.yml
+ANSIBLE_CONFIG=ansible.cfg ansible-playbook -i inventory tang.yml
 EOF
     ]
   }

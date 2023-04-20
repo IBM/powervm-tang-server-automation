@@ -29,8 +29,9 @@
                 storage_device=$device
             fi
         done
-        echo 'type=83' | sfdisk ${storage_device}
+        echo 'type=83' | sfdisk ${storage_device} --force
         partprobe
+        partprobe -s
         mkfs.xfs "${device}1"
         echo "${device}1"
       register: result
@@ -40,4 +41,3 @@
         src: "{{ result.stdout }}"
         fstype: xfs
         state: mounted
-      

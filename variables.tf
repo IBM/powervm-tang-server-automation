@@ -184,8 +184,8 @@ variable "rhel_subscription_password" {
 }
 
 variable "rhel_smt" {
-  description = "SMT value to set on the bastion node. Eg: on,off,2,4,8"
-  default     = 4
+  description = "SMT value to set on the node. Eg: on,off,2,4,8"
+  default     = 8
 }
 
 ################################################################
