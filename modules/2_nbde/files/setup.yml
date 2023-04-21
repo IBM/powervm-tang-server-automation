@@ -3,10 +3,10 @@
   gather_facts: no
 
   tasks:
-    - name: Wait up to 300 seconds
+    - name: Wait up to 600 seconds
       ansible.builtin.wait_for_connection:
         delay: 60
-        timeout: 300
+        timeout: 600
     - name: Initialize Host and Networking
       become_user: root
       shell: |
