@@ -1,6 +1,6 @@
 # `powervm-tang-server-automation`
 
-The [`powervm-tang-server-automation` project](https://github.com/IBM/powervm-tang-server-automation) provides Terraform based automation code to help with the deployment of [Network Bound Disk Encryption (NBDE)](https://github.com/linux-system-roles/nbde_server) on [IBM® Power Systems™ Virtual Server on IBM Cloud](https://www.ibm.com/cloud/power-virtual-server).
+The [`powervm-tang-server-automation` project](https://github.com/IBM/powervm-tang-server-automation) provides Terraform based automation code to help with the deployment of [Network Bound Disk Encryption (NBDE)](https://github.com/linux-system-roles/nbde_server) on [IBM® Power Systems™ virtualization and cloud management](https://www.ibm.com/products/powervc).
 
 The NBDE Server, also called the tang server, is deployed in a 3-node cluster with a single [bastion host](https://en.wikipedia.org/wiki/Bastion_host). The tang server socket listens on port 7500.
 
@@ -73,7 +73,7 @@ $ terraform plan --var-file=var.tfvars
 $ terraform apply -var-file=var.tfvars
 ```
 
-Note: Terraform Version should be ~>1.2.0
+Note: Terraform Version should be ~>1.4.0
 
 Now wait for the installation to complete. It may take around 20 mins to complete provisioning.
 
@@ -120,32 +120,26 @@ expected to backup the keys using their operations processes.
 ### Re-keying all NBDE servers
 
 1. Connect to your Bastion host
-2. Change directory to `nbde_server`
-   `cd nbde_server`
-3. Run the playbook with the rotate keys variable
+2. Run the playbook with the rotate keys variable
 
 ```terraform
-ANSIBLE_HOST_KEY_CHECKING = False ansible-playbook -i inventory tasks/tang.yml -e nbde_server_rotate_keys = yes
+sudo env ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory tang.yml -e nbde_server_rotate_keys=yes
 ```
 
 ### Re-keying (Deleting) a single Tang server keys
 
 1. Connect to your Bastion host
 
-2. Change directory to `nbde_server`
-
-```cd nbde_server```
-
-3. Copy the `inventory` to `inventory-del`
+2. Copy the `inventory` to `inventory-del`
 
 ```cp inventory inventory-del```
 
-4. Edit the `inventory-del` for the hosts you want to rekey
+3. Edit the `inventory-del` for the hosts you want to rekey
 
-5. Run the playbook with the rotate keys variable
+4. Run the playbook with the rotate keys variable
 
 ```terraform
-ANSIBLE_HOST_KEY_CHECKING = False ansible-playbook -i inventory tasks/tang.yml -e nbde_server_rotate_keys = yes
+sudo env ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory tang.yml -e nbde_server_rotate_keys=yes
 ```
 
 ## Automation Host Prerequisites
