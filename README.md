@@ -123,7 +123,8 @@ expected to backup the keys using their operations processes.
 2. Run the playbook with the rotate keys variable
 
 ```terraform
-sudo env ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory tang.yml -e nbde_server_rotate_keys=yes
+sudo env ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook \
+    -i inventory tang.yml -e nbde_server_rotate_keys=yes
 ```
 
 ### Re-keying (Deleting) a single Tang server keys
@@ -139,7 +140,8 @@ sudo env ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory tang.yml 
 4. Run the playbook with the rotate keys variable
 
 ```terraform
-sudo env ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory tang.yml -e nbde_server_rotate_keys=yes
+sudo env ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook \
+    -i inventory tang.yml -e nbde_server_rotate_keys=yes
 ```
 
 ## Automation Host Prerequisites
