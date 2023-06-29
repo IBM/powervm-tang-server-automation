@@ -24,7 +24,6 @@
           con_name=$(nmcli -t -f NAME connection show | grep $env)
           nmcli connection modify "$con_name" ethtool.feature-rx off
           nmcli connection modify "$con_name" ethernet.mtu {{private_network_mtu}}
-          nmcli connection modify "$con_name" ipv4.gateway {{bastion_ip}}
           nmcli connection up "$con_name"
         done
 
