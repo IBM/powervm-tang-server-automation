@@ -8,7 +8,7 @@
 #
 # Licensed Materials - Property of IBM
 #
-# ©Copyright IBM Corp. 2022
+# ©Copyright IBM Corp. 2022, 2023
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,11 +26,11 @@ terraform {
     }
     random = {
       source  = "hashicorp/random"
-      version = "~> 3.4"
+      version = "~> 3.6"
     }
     null = {
       source  = "hashicorp/null"
-      version = "3.2.2"
+      version = "~> 3.2"
     }
   }
   required_version = ">= 1.4.0"
