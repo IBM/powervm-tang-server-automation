@@ -66,19 +66,24 @@
     - name: Register with Red Hat Network
       become_user: root
       shell: |
-        os=$(cat /etc/os-release | egrep "^ID=" | awk -F'"' '{print $2}')
-        if [[ "$os" == "rhel" ]]
+        if ( [[ -z "{{username}}" ]] || [[ "{{username}}" == "<subscription-id>" ]] ) && [[ -z "{{rhel_subscription_org}}" ]]
         then
-          # Give some more time to subscription-manager
-          subscription-manager config --server.server_timeout=600
-          subscription-manager clean
-          if [[ "{{username}}" != '' && "{{username}}" != '<subscription-id>' ]]; then
-            subscription-manager register --username="{{username}}" --password="{{password}}" --force
-          else
-            subscription-manager register --org="{{username}}" --activationkey="{{rhel_subscription_activationkey}}" --force
+          echo "Red Hat username and subscription not provided... using centos"
+        else
+          os=$(cat /etc/os-release | egrep "^ID=" | awk -F'"' '{print $2}')
+          if [[ "$os" == "rhel" ]]
+          then
+            # Give some more time to subscription-manager
+            subscription-manager config --server.server_timeout=600
+            subscription-manager clean
+            if [[ "{{username}}" != '' && "{{username}}" != '<subscription-id>' ]]; then
+              subscription-manager register --username="{{username}}" --password="{{password}}" --force
+            else
+              subscription-manager register --org="{{username}}" --activationkey="{{rhel_subscription_activationkey}}" --force
+            fi
+            subscription-manager refresh
+            subscription-manager attach --auto
           fi
-          subscription-manager refresh
-          subscription-manager attach --auto
         fi
 
     - name: Add EPEL Repository

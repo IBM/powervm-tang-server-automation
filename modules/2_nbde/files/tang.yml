@@ -45,4 +45,3 @@
         shopt -s extglob
         cd /root/tang-keys
         rm -v !("allnodes.txt") -f
-
