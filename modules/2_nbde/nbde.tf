@@ -76,11 +76,40 @@ resource "openstack_compute_volume_attach_v2" "tang" {
   volume_id   = openstack_blockstorage_volume_v3.tang.*.id[count.index]
 }
 
+# Accounts for server setup delays before executing the nbde role
+resource "null_resource" "tang_server_nop" {
+  count      = var.tang["count"]
+  depends_on = [openstack_compute_volume_attach_v2.tang]
+
+  triggers = {
+    external_ip        = openstack_compute_instance_v2.tang[count.index].network.fixed_ip_v4
+    rhel_username      = var.rhel_username
+    private_key        = local.private_key
+    ssh_agent          = var.ssh_agent
+    connection_timeout = "${var.connection_timeout}m"
+  }
+
+  connection {
+    type        = "ssh"
+    user        = self.triggers.rhel_username
+    host        = self.triggers.external_ip
+    private_key = self.triggers.private_key
+    agent       = self.triggers.ssh_agent
+    timeout     = self.triggers.connection_timeout
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "whoami"
+    ]
+  }
+}
+
 resource "null_resource" "tang_setup" {
   count = 1
 
   depends_on = [
-    openstack_compute_volume_attach_v2.tang
+    openstack_compute_volume_attach_v2.tang, null_resource.tang_server_nop
   ]
 
   triggers = {
