@@ -82,7 +82,7 @@ resource "null_resource" "tang_server_nop" {
   depends_on = [openstack_compute_volume_attach_v2.tang]
 
   triggers = {
-    external_ip        = openstack_compute_instance_v2.tang[count.index].network.fixed_ip_v4
+    external_ip        = openstack_compute_instance_v2.tang[count.index].network[0].fixed_ip_v4
     rhel_username      = var.rhel_username
     private_key        = local.private_key
     ssh_agent          = var.ssh_agent
