@@ -260,9 +260,9 @@ log_path            = /root/tang-server-logs.txt
 EOT
 
 # See tag at https://github.com/linux-system-roles/nbde_server/releases
-ansible-galaxy install linux-system-roles.nbde_server,1.3.8
+ansible-galaxy install linux-system-roles.nbde_server,1.4.6
 # Lock in the system_roles - https://galaxy.ansible.com/fedora/linux_system_roles
-ansible-galaxy collection install fedora.linux_system_roles:==1.46.0
+ansible-galaxy collection install fedora.linux_system_roles:==1.82.0
 ANSIBLE_CONFIG=ansible.cfg ansible-playbook -i inventory tang.yml
 EOF
     ]
