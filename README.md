@@ -73,6 +73,8 @@ $ terraform plan -var-file=var.tfvars
 $ terraform apply -var-file=var.tfvars
 ```
 
+You may also use `opentofu`.
+
 Note: Terraform Version should be ~>1.4.0
 
 Now wait for the installation to complete. It may take around 20 mins to complete provisioning.
