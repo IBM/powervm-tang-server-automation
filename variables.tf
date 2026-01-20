@@ -222,9 +222,21 @@ variable "vm_id" {
 }
 
 variable "proxy" {
-  type        = object({})
+  type = object({
+    server    = string
+    port      = string
+    user      = string
+    user_pass = string
+    no_proxy  = string
+  })
   description = "External Proxy server details in a map"
-  default     = {}
+  default = {
+    server    = ""
+    port      = ""
+    user      = ""
+    user_pass = ""
+    no_proxy  = ""
+  }
   #    default = {
   #        server = "10.10.1.166",
   #        port = "3128"

@@ -88,12 +88,18 @@ variable "setup_squid_proxy" {
   default     = false
 }
 variable "proxy" {
-  type        = object({})
+  type = object({
+    server    = string
+    port      = string
+    user      = string
+    user_pass = string
+    no_proxy  = string
+  })
   description = "External Proxy server details in a map"
   default = {
-    server    = "",
+    server    = ""
     port      = ""
-    user      = "",
+    user      = ""
     user_pass = ""
     no_proxy  = ""
   }

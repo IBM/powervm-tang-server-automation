@@ -101,24 +101,24 @@ resource "null_resource" "setup_proxy_info" {
       <<EOF
 echo "Setting up proxy details..."
 # System
-set http_proxy="http://${var.proxy[0].user_pass}${var.proxy[0].server}:${var.proxy[0].port}"
-set https_proxy="http://${var.proxy[0].user_pass}${var.proxy[0].server}:${var.proxy[0].port}"
-set no_proxy="${var.proxy[0].no_proxy}"
-echo "export http_proxy=\"http://${var.proxy[0].user_pass}${var.proxy[0].server}:${var.proxy[0].port}\"" | sudo tee /etc/profile.d/http_proxy.sh > /dev/null
-echo "export https_proxy=\"http://${var.proxy[0].user_pass}${var.proxy[0].server}:${var.proxy[0].port}\"" | sudo tee -a /etc/profile.d/http_proxy.sh > /dev/null
-echo "export no_proxy=\"${var.proxy[0].no_proxy}\"" | sudo tee -a /etc/profile.d/http_proxy.sh > /dev/null
+set http_proxy="http://${var.proxy.user_pass}${var.proxy.server}:${var.proxy.port}"
+set https_proxy="http://${var.proxy.user_pass}${var.proxy.server}:${var.proxy.port}"
+set no_proxy="${var.proxy.no_proxy}"
+echo "export http_proxy=\"http://${var.proxy.user_pass}${var.proxy.server}:${var.proxy.port}\"" | sudo tee /etc/profile.d/http_proxy.sh > /dev/null
+echo "export https_proxy=\"http://${var.proxy.user_pass}${var.proxy.server}:${var.proxy.port}\"" | sudo tee -a /etc/profile.d/http_proxy.sh > /dev/null
+echo "export no_proxy=\"${var.proxy.no_proxy}\"" | sudo tee -a /etc/profile.d/http_proxy.sh > /dev/null
 # RHSM
-sudo sed -i -e 's/^proxy_hostname =.*/proxy_hostname = ${var.proxy[0].server}/' /etc/rhsm/rhsm.conf
-sudo sed -i -e 's/^proxy_port =.*/proxy_port = ${var.proxy[0].port}/' /etc/rhsm/rhsm.conf
-sudo sed -i -e 's/^proxy_user =.*/proxy_user = ${var.proxy[0].user}/' /etc/rhsm/rhsm.conf
-sudo sed -i -e 's/^proxy_password =.*/proxy_password = ${var.proxy[0].user_pass}/' /etc/rhsm/rhsm.conf
+sudo sed -i -e 's/^proxy_hostname =.*/proxy_hostname = ${var.proxy.server}/' /etc/rhsm/rhsm.conf
+sudo sed -i -e 's/^proxy_port =.*/proxy_port = ${var.proxy.port}/' /etc/rhsm/rhsm.conf
+sudo sed -i -e 's/^proxy_user =.*/proxy_user = ${var.proxy.user}/' /etc/rhsm/rhsm.conf
+sudo sed -i -e 's/^proxy_password =.*/proxy_password = ${var.proxy.user_pass}/' /etc/rhsm/rhsm.conf
 # YUM/DNF
 # Incase /etc/yum.conf is a symlink to /etc/dnf/dnf.conf we try to update the original file
 yum_dnf_conf=$(readlink -f -q /etc/yum.conf)
 sudo sed -i -e '/^proxy.*/d' $yum_dnf_conf
-echo "proxy=http://${var.proxy[0].server}:${var.proxy[0].port}" | sudo tee -a $yum_dnf_conf > /dev/null
-echo "proxy_username=${var.proxy[0].user}" | sudo tee -a $yum_dnf_conf > /dev/null
-echo "proxy_password=${var.proxy[0].user_pass}" | sudo tee -a $yum_dnf_conf > /dev/null
+echo "proxy=http://${var.proxy.server}:${var.proxy.port}" | sudo tee -a $yum_dnf_conf > /dev/null
+echo "proxy_username=${var.proxy.user}" | sudo tee -a $yum_dnf_conf > /dev/null
+echo "proxy_password=${var.proxy.user_pass}" | sudo tee -a $yum_dnf_conf > /dev/null
 EOF
     ]
   }
