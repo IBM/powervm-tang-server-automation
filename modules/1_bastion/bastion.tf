@@ -50,7 +50,7 @@ resource "null_resource" "bastion_init" {
     type        = "ssh"
     user        = var.rhel_username
     host        = openstack_compute_instance_v2.bastion[count.index].access_ip_v4
-    private_key = var.private_key
+    private_key = sensitive(var.private_key)
     agent       = var.ssh_agent
     timeout     = "${var.connection_timeout}m"
   }
@@ -91,7 +91,7 @@ resource "null_resource" "setup_proxy_info" {
     type        = "ssh"
     user        = var.rhel_username
     host        = openstack_compute_instance_v2.bastion[count.index].access_ip_v4
-    private_key = var.private_key
+    private_key = sensitive(var.private_key)
     agent       = var.ssh_agent
     timeout     = "${var.connection_timeout}m"
   }
@@ -130,7 +130,7 @@ resource "null_resource" "bastion_register" {
   triggers = {
     external_ip        = openstack_compute_instance_v2.bastion[count.index].access_ip_v4
     rhel_username      = var.rhel_username
-    private_key        = var.private_key
+    private_key        = sensitive(var.private_key)
     ssh_agent          = var.ssh_agent
     connection_timeout = var.connection_timeout
   }
@@ -171,7 +171,7 @@ EOF
       type        = "ssh"
       user        = self.triggers.rhel_username
       host        = self.triggers.external_ip
-      private_key = self.triggers.private_key
+      private_key = sensitive(self.triggers.private_key)
       agent       = self.triggers.ssh_agent
       timeout     = "2m"
     }
@@ -192,7 +192,7 @@ resource "null_resource" "enable_repos" {
     type        = "ssh"
     user        = var.rhel_username
     host        = openstack_compute_instance_v2.bastion[count.index].access_ip_v4
-    private_key = var.private_key
+    private_key = sensitive(var.private_key)
     agent       = var.ssh_agent
     timeout     = "${var.connection_timeout}m"
   }
@@ -227,7 +227,7 @@ resource "null_resource" "bastion_packages" {
     type        = "ssh"
     user        = var.rhel_username
     host        = openstack_compute_instance_v2.bastion[count.index].access_ip_v4
-    private_key = var.private_key
+    private_key = sensitive(var.private_key)
     agent       = var.ssh_agent
     timeout     = "${var.connection_timeout}m"
   }
@@ -293,7 +293,7 @@ resource "null_resource" "bastion_setup_rsct" {
     type        = "ssh"
     user        = var.rhel_username
     host        = openstack_compute_instance_v2.bastion[count.index].access_ip_v4
-    private_key = var.private_key
+    private_key = sensitive(var.private_key)
     agent       = var.ssh_agent
     timeout     = "${var.connection_timeout}m"
   }
@@ -314,7 +314,7 @@ resource "null_resource" "bastion_remove" {
   triggers = {
     external_ip        = openstack_compute_instance_v2.bastion[count.index].access_ip_v4
     rhel_username      = var.rhel_username
-    private_key        = var.private_key
+    private_key        = sensitive(var.private_key)
     ssh_agent          = var.ssh_agent
     connection_timeout = "${var.connection_timeout}m"
   }
@@ -323,7 +323,7 @@ resource "null_resource" "bastion_remove" {
     type        = "ssh"
     user        = self.triggers.rhel_username
     host        = self.triggers.external_ip
-    private_key = self.triggers.private_key
+    private_key = sensitive(self.triggers.private_key)
     agent       = self.triggers.ssh_agent
     timeout     = self.triggers.connection_timeout
   }

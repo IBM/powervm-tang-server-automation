@@ -33,7 +33,7 @@ resource "null_resource" "tang_fips_enable" {
     type        = "ssh"
     user        = var.rhel_username
     host        = var.bastion_public_ip
-    private_key = local.private_key
+    private_key = sensitive(local.private_key)
     agent       = var.ssh_agent
     timeout     = "${var.connection_timeout}m"
   }
@@ -82,7 +82,7 @@ resource "null_resource" "bastion_fips_enable_and_reboot" {
     type        = "ssh"
     user        = var.rhel_username
     host        = var.bastion_public_ip
-    private_key = local.private_key
+    private_key = sensitive(local.private_key)
     agent       = var.ssh_agent
     timeout     = "${var.connection_timeout}m"
   }

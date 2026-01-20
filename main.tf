@@ -48,7 +48,7 @@ provider "openstack" {
 resource "openstack_compute_keypair_v2" "kp" {
   count      = local.create_keypair
   name       = var.keypair_name == "" ? "${local.n_prefix}-keypair" : var.keypair_name
-  public_key = local.public_key
+  public_key = sensitive(local.public_key)
 }
 
 module "bastion" {

@@ -84,7 +84,7 @@ resource "null_resource" "tang_server_nop" {
   triggers = {
     external_ip        = openstack_compute_instance_v2.tang[count.index].network[0].fixed_ip_v4
     rhel_username      = var.rhel_username
-    private_key        = local.private_key
+    private_key        = sensitive(local.private_key)
     ssh_agent          = var.ssh_agent
     connection_timeout = "${var.connection_timeout}m"
   }
@@ -93,7 +93,7 @@ resource "null_resource" "tang_server_nop" {
     type        = "ssh"
     user        = self.triggers.rhel_username
     host        = self.triggers.external_ip
-    private_key = self.triggers.private_key
+    private_key = sensitive(self.triggers.private_key)
     agent       = self.triggers.ssh_agent
     timeout     = self.triggers.connection_timeout
   }
@@ -115,7 +115,7 @@ resource "null_resource" "tang_setup" {
   triggers = {
     external_ip        = var.bastion_public_ip
     rhel_username      = var.rhel_username
-    private_key        = local.private_key
+    private_key        = sensitive(local.private_key)
     ssh_agent          = var.ssh_agent
     connection_timeout = "${var.connection_timeout}m"
   }
@@ -124,7 +124,7 @@ resource "null_resource" "tang_setup" {
     type        = "ssh"
     user        = self.triggers.rhel_username
     host        = self.triggers.external_ip
-    private_key = self.triggers.private_key
+    private_key = sensitive(self.triggers.private_key)
     agent       = self.triggers.ssh_agent
     timeout     = self.triggers.connection_timeout
   }
@@ -233,7 +233,7 @@ resource "null_resource" "tang_install" {
   triggers = {
     external_ip        = var.bastion_public_ip
     rhel_username      = var.rhel_username
-    private_key        = local.private_key
+    private_key        = sensitive(local.private_key)
     ssh_agent          = var.ssh_agent
     connection_timeout = "${var.connection_timeout}m"
   }
@@ -242,7 +242,7 @@ resource "null_resource" "tang_install" {
     type        = "ssh"
     user        = self.triggers.rhel_username
     host        = self.triggers.external_ip
-    private_key = self.triggers.private_key
+    private_key = sensitive(self.triggers.private_key)
     agent       = self.triggers.ssh_agent
     timeout     = self.triggers.connection_timeout
   }
@@ -279,7 +279,7 @@ resource "null_resource" "tang_report_details" {
   triggers = {
     external_ip        = var.bastion_public_ip
     rhel_username      = var.rhel_username
-    private_key        = local.private_key
+    private_key        = sensitive(local.private_key)
     ssh_agent          = var.ssh_agent
     connection_timeout = "${var.connection_timeout}m"
   }
@@ -288,7 +288,7 @@ resource "null_resource" "tang_report_details" {
     type        = "ssh"
     user        = self.triggers.rhel_username
     host        = self.triggers.external_ip
-    private_key = self.triggers.private_key
+    private_key = sensitive(self.triggers.private_key)
     agent       = self.triggers.ssh_agent
     timeout     = self.triggers.connection_timeout
   }
