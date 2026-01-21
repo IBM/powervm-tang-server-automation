@@ -84,7 +84,7 @@ EOF
 }
 
 resource "null_resource" "setup_proxy_info" {
-  count      = !var.setup_squid_proxy && length(var.proxy) != 0 ? var.bastion.count : 0
+  count      = !var.setup_squid_proxy && var.proxy.server != "" ? var.bastion.count : 0
   depends_on = [null_resource.bastion_init]
 
   connection {
